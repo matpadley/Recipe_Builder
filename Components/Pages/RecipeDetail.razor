@@ -1,0 +1,205 @@
+@page "/recipes/{Id:int}"
+@using RecipeIngredients.Models
+@using RecipeIngredients.Services
+@inject RecipeStore Store
+@inject IngredientStore IngredientStore
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+
+<PageTitle>@(_recipe?.Title ?? "Recipe")</PageTitle>
+
+<MudButton Href="/recipes" StartIcon="@Icons.Material.Filled.ArrowBack" Class="mb-4">All recipes</MudButton>
+
+@if (_loading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_recipe is null)
+{
+    <MudPaper Class="pa-6" Elevation="2">
+        <MudText Typo="Typo.body1">Recipe not found.</MudText>
+    </MudPaper>
+}
+else
+{
+    <div class="d-flex align-center justify-space-between">
+        <MudText Typo="Typo.h4">@_recipe.Title</MudText>
+        <div class="d-flex align-center gap-1">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Restaurant"
+                       Disabled="_using"
+                       OnClick="UseRecipe">
+                I made this
+            </MudButton>
+            <MudTooltip Text="@(_recipe.IsFavourite ? "Remove from favourites" : "Add to favourites")">
+                <MudIconButton Icon="@(_recipe.IsFavourite ? Icons.Material.Filled.Favorite : Icons.Material.Filled.FavoriteBorder)"
+                               Color="Color.Error"
+                               OnClick="ToggleFavourite" />
+            </MudTooltip>
+            <MudTooltip Text="Delete recipe">
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="DeleteRecipe" />
+            </MudTooltip>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_recipe.Description))
+    {
+        <MudText Typo="Typo.body1" Class="mt-2">@_recipe.Description</MudText>
+    }
+
+    <div class="d-flex flex-wrap gap-1 mt-3 mb-4">
+        @if (_recipe.Servings is not null)
+        {
+            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.People">Serves @_recipe.Servings</MudChip>
+        }
+        @if (_recipe.PrepMinutes is not null)
+        {
+            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.ContentCut">Prep @RecipeTime.Format(_recipe.PrepMinutes.Value)</MudChip>
+        }
+        @if (_recipe.CookMinutes is not null)
+        {
+            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.LocalFireDepartment">Cook @RecipeTime.Format(_recipe.CookMinutes.Value)</MudChip>
+        }
+        @if (_recipe.LastUsedUtc is not null)
+        {
+            <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.History">Last made @_recipe.LastUsedUtc.Value.ToLocalTime().ToString("d")</MudChip>
+        }
+        @foreach (var tag in _recipe.Tags)
+        {
+            <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text">@tag</MudChip>
+        }
+    </div>
+
+    <MudGrid>
+        <MudItem xs="12" md="5">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" GutterBottom="true">Ingredients</MudText>
+                <MudList T="string" Dense="true">
+                    @foreach (var ingredient in _recipe.Ingredients)
+                    {
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.FiberManualRecord" IconSize="Size.Small">
+                            @FormatIngredient(ingredient)
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="7">
+            <MudPaper Class="pa-4" Elevation="2">
+                <MudText Typo="Typo.h6" GutterBottom="true">Method</MudText>
+                <ol class="recipe-steps">
+                    @foreach (var step in _recipe.Steps)
+                    {
+                        <li><MudText Typo="Typo.body1">@step</MudText></li>
+                    }
+                </ol>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    @if (!string.IsNullOrWhiteSpace(_recipe.Notes))
+    {
+        <MudAlert Severity="Severity.Info" Class="mt-4">@_recipe.Notes</MudAlert>
+    }
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private Recipe? _recipe;
+    private bool _loading = true;
+    private bool _using;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _recipe = await Store.GetAsync(Id);
+        _loading = false;
+    }
+
+    private static string FormatIngredient(RecipeIngredient ingredient)
+    {
+        var quantity = ingredient.Amount is null
+            ? string.Empty
+            : ingredient.Unit is null or MeasurementUnit.pcs
+                ? $"{ingredient.Amount:0.##} "
+                : $"{ingredient.Amount:0.##} {ingredient.Unit} ";
+        var note = string.IsNullOrWhiteSpace(ingredient.Note) ? string.Empty : $", {ingredient.Note}";
+        return $"{quantity}{ingredient.Name}{note}";
+    }
+
+    private async Task ToggleFavourite()
+    {
+        _recipe!.IsFavourite = !_recipe.IsFavourite;
+        await Store.SetFavouriteAsync(_recipe.Id, _recipe.IsFavourite);
+    }
+
+    private async Task UseRecipe()
+    {
+        // Dry run against a fresh copy of the stock so the user can see what will change.
+        var preview = IngredientUsage.Apply(await IngredientStore.GetAllAsync(), _recipe!.Ingredients);
+
+        var confirmed = await DialogService.ShowMessageBoxAsync(
+            "I made this",
+            new MarkupString($"<p>This will update your ingredients:</p>{FormatLines(preview)}"),
+            yesText: "Update ingredients",
+            cancelText: "Cancel");
+
+        if (confirmed != true)
+        {
+            return;
+        }
+
+        _using = true;
+        try
+        {
+            var lines = await IngredientStore.UseAsync(_recipe.Ingredients);
+            await Store.MarkUsedAsync(_recipe.Id);
+            _recipe.LastUsedUtc = DateTime.UtcNow;
+
+            var deducted = lines.Count(l => l.Outcome != UsageOutcome.Skipped);
+            Snackbar.Add($"Updated {deducted} ingredient{(deducted == 1 ? "" : "s")}.", Severity.Success);
+        }
+        finally
+        {
+            _using = false;
+        }
+    }
+
+    private static string FormatLines(List<UsageLine> lines)
+    {
+        var items = lines.Select(l =>
+        {
+            var name = System.Net.WebUtility.HtmlEncode(l.Name);
+            var detail = System.Net.WebUtility.HtmlEncode(l.Detail);
+            return l.Outcome switch
+            {
+                UsageOutcome.Deducted => $"<li><b>{name}</b>: {detail}</li>",
+                UsageOutcome.RanOut => $"<li><b>{name}</b>: <span style=\"color: var(--mud-palette-warning)\">{detail}</span></li>",
+                _ => $"<li style=\"opacity: 0.6\">{name}: skipped ({detail})</li>",
+            };
+        });
+        return $"<ul style=\"padding-left: 1.25rem\">{string.Concat(items)}</ul>";
+    }
+
+    private async Task DeleteRecipe()
+    {
+        var confirmed = await DialogService.ShowMessageBoxAsync(
+            "Delete Recipe",
+            $"Are you sure you want to delete \"{_recipe!.Title}\"?",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (confirmed != true)
+        {
+            return;
+        }
+
+        await Store.DeleteAsync(_recipe.Id);
+
+        Snackbar.Add($"Deleted {_recipe.Title}.", Severity.Success);
+        Navigation.NavigateTo("/recipes");
+    }
+}

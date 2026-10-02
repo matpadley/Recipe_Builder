@@ -1,0 +1,126 @@
+@page "/"
+@page "/ingredients"
+@using RecipeIngredients.Models
+@using RecipeIngredients.Services
+@inject IngredientStore Store
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Ingredients</PageTitle>
+
+<div class="d-flex align-center justify-space-between mb-4">
+    <MudText Typo="Typo.h4">Ingredients</MudText>
+    <MudTooltip Text="Add ingredient">
+        <MudIconButton Icon="@Icons.Material.Filled.Add"
+                       Color="Color.Primary"
+                       Variant="Variant.Filled"
+                       OnClick="OpenAddDialog" />
+    </MudTooltip>
+</div>
+
+<MudTable Items="_ingredients"
+          Loading="_ingredients is null"
+          LoadingProgressColor="Color.Primary"
+          Hover="true"
+          Striped="true"
+          Dense="true"
+          Elevation="2"
+          Breakpoint="Breakpoint.Sm">
+    <HeaderContent>
+        <MudTh>Ingredient</MudTh>
+        <MudTh>Amount per item</MudTh>
+        <MudTh>Unit</MudTh>
+        <MudTh>Available</MudTh>
+        <MudTh>Added</MudTh>
+        <MudTh Style="width: 96px;"></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Ingredient">@context.Name</MudTd>
+        <MudTd DataLabel="Amount per item">@context.Amount</MudTd>
+        <MudTd DataLabel="Unit">
+            <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text">@context.Unit</MudChip>
+        </MudTd>
+        <MudTd DataLabel="Available">@(context.Available.ToString() ?? "-")</MudTd>
+        <MudTd DataLabel="Added">@context.CreatedAtUtc.ToLocalTime().ToString("g")</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                           Size="Size.Small"
+                           Color="Color.Primary"
+                           OnClick="@(() => OpenEditDialog(context))" />
+            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                           Size="Size.Small"
+                           Color="Color.Error"
+                           OnClick="@(() => DeleteIngredient(context))" />
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText Typo="Typo.body2">No ingredients yet.</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText Typo="Typo.body2">Loading...</MudText>
+    </LoadingContent>
+</MudTable>
+
+@code {
+    private List<Ingredient>? _ingredients;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadIngredients();
+    }
+
+    private async Task LoadIngredients()
+    {
+        _ingredients = (await Store.GetAllAsync())
+            .OrderByDescending(i => i.CreatedAtUtc)
+            .ToList();
+    }
+
+    private async Task OpenAddDialog()
+    {
+        var dialog = await DialogService.ShowAsync<IngredientDialog>("Add Ingredient");
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: Ingredient ingredient })
+        {
+            await Store.AddAsync(ingredient);
+
+            Snackbar.Add($"Saved {ingredient.Name}.", Severity.Success);
+            await LoadIngredients();
+        }
+    }
+
+    private async Task OpenEditDialog(Ingredient ingredient)
+    {
+        var parameters = new DialogParameters<IngredientDialog> { { x => x.Ingredient, ingredient } };
+        var dialog = await DialogService.ShowAsync<IngredientDialog>("Edit Ingredient", parameters);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: Ingredient updated })
+        {
+            await Store.UpdateAsync(updated);
+
+            Snackbar.Add($"Updated {updated.Name}.", Severity.Success);
+            await LoadIngredients();
+        }
+    }
+
+    private async Task DeleteIngredient(Ingredient ingredient)
+    {
+        var confirmed = await DialogService.ShowMessageBoxAsync(
+            "Delete Ingredient",
+            $"Are you sure you want to delete \"{ingredient.Name}\"?",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (confirmed != true)
+        {
+            return;
+        }
+
+        await Store.DeleteAsync(ingredient.Id);
+
+        Snackbar.Add($"Deleted {ingredient.Name}.", Severity.Success);
+        await LoadIngredients();
+    }
+}

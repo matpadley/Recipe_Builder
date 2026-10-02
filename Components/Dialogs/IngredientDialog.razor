@@ -1,0 +1,100 @@
+@using RecipeIngredients.Models
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@(_isEdit ? "Edit Ingredient" : "Add Ingredient")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" Model="_ingredient">
+            <MudGrid Spacing="3">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_ingredient.Name"
+                                  For="@(() => _ingredient.Name)"
+                                  Label="Ingredient"
+                                  Placeholder="e.g. Flour"
+                                  Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_ingredient.Amount"
+                                     For="@(() => _ingredient.Amount)"
+                                     Label="Amount per item"
+                                     Step="0.01M"
+                                     Min="0M"
+                                     Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.body2" Class="mud-input-label mb-1">Measurement</MudText>
+                    <MudRadioGroup @bind-Value="_ingredient.Unit"
+                                   For="@(() => _ingredient.Unit)">
+                        @foreach (var unit in Enum.GetValues<MeasurementUnit>())
+                        {
+                            <MudRadio Value="unit" Color="Color.Primary" Dense="true">@unit</MudRadio>
+                        }
+                    </MudRadioGroup>
+                </MudItem>
+
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_ingredient.Available"
+                                     For="@(() => _ingredient.Available)"
+                                     Label="Available (optional)"
+                                     HelperText="e.g. number of tins"
+                                     Placeholder="e.g. 3"
+                                     Min="1"
+                                     Variant="Variant.Outlined" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   StartIcon="@Icons.Material.Filled.Save"
+                   OnClick="Submit"
+                   Disabled="_saving">
+            @(_saving ? "Saving..." : "Save")
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public Ingredient? Ingredient { get; set; }
+
+    private MudForm _form = default!;
+    private Ingredient _ingredient = new();
+    private bool _isEdit;
+    private bool _saving;
+
+    protected override void OnInitialized()
+    {
+        _isEdit = Ingredient is not null;
+        _ingredient = Ingredient is null
+            ? new Ingredient()
+            : new Ingredient
+            {
+                Id = Ingredient.Id,
+                Name = Ingredient.Name,
+                Amount = Ingredient.Amount,
+                Unit = Ingredient.Unit,
+                Available = Ingredient.Available,
+                CreatedAtUtc = Ingredient.CreatedAtUtc,
+            };
+    }
+
+    private async Task Submit()
+    {
+        await _form.ValidateAsync();
+        if (!_form.IsValid)
+        {
+            return;
+        }
+
+        _saving = true;
+        MudDialog.Close(DialogResult.Ok(_ingredient));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

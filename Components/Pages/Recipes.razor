@@ -1,0 +1,85 @@
+@page "/recipes"
+@using RecipeIngredients.Models
+@using RecipeIngredients.Services
+@inject RecipeStore Store
+
+<PageTitle>Recipes</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Saved Recipes</MudText>
+
+@if (_recipes is null)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_recipes.Count == 0)
+{
+    <MudPaper Class="pa-6" Elevation="2">
+        <MudText Typo="Typo.body1">No saved recipes yet.</MudText>
+        <MudText Typo="Typo.body2" Class="mt-2">
+            Ask Claude for a recipe, then use <code>/save-recipe</code> to save it here.
+        </MudText>
+    </MudPaper>
+}
+else
+{
+    <MudGrid>
+        @foreach (var recipe in _recipes)
+        {
+            <MudItem xs="12" sm="6">
+                <MudCard Elevation="2" Class="h-100">
+                    <MudCardContent>
+                        <div class="d-flex align-start justify-space-between">
+                            <MudText Typo="Typo.h6">@recipe.Title</MudText>
+                            <MudIconButton Icon="@(recipe.IsFavourite ? Icons.Material.Filled.Favorite : Icons.Material.Filled.FavoriteBorder)"
+                                           Color="Color.Error"
+                                           Size="Size.Small"
+                                           aria-label="Toggle favourite"
+                                           OnClick="@(() => ToggleFavourite(recipe))" />
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(recipe.Description))
+                        {
+                            <MudText Typo="Typo.body2" Class="mt-1">@recipe.Description</MudText>
+                        }
+                        <div class="d-flex flex-wrap gap-1 mt-3">
+                            @if (recipe.Servings is not null)
+                            {
+                                <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.People">Serves @recipe.Servings</MudChip>
+                            }
+                            @if (RecipeTime.Total(recipe) is { } total)
+                            {
+                                <MudChip T="string" Size="Size.Small" Icon="@Icons.Material.Filled.Timer">@RecipeTime.Format(total)</MudChip>
+                            }
+                            @foreach (var tag in recipe.Tags)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text">@tag</MudChip>
+                            }
+                        </div>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Href="@($"/recipes/{recipe.Id}")" Color="Color.Primary">View</MudButton>
+                        <MudSpacer />
+                        <MudText Typo="Typo.caption" Class="mr-2">@recipe.CreatedAtUtc.ToLocalTime().ToString("d")</MudText>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    private List<Recipe>? _recipes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _recipes = (await Store.GetAllAsync())
+            .OrderByDescending(r => r.IsFavourite)
+            .ThenByDescending(r => r.CreatedAtUtc)
+            .ToList();
+    }
+
+    private async Task ToggleFavourite(Recipe recipe)
+    {
+        recipe.IsFavourite = !recipe.IsFavourite;
+        await Store.SetFavouriteAsync(recipe.Id, recipe.IsFavourite);
+    }
+}

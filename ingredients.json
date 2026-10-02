@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1,
+    "name": "flour",
+    "amount": 400,
+    "unit": "g",
+    "available": 1,
+    "createdAtUtc": "2026-10-02T11:04:38.167168Z"
+  }
+]

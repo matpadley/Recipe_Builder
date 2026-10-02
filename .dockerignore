@@ -1,0 +1,11 @@
+bin/
+obj/
+**/bin/
+**/obj/
+.claude/
+*.db
+.git/
+.gitignore
+README.md
+ingredients.json
+ingredients.json.tmp
