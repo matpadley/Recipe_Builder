@@ -9,3 +9,5 @@ obj/
 README.md
 ingredients.json
 ingredients.json.tmp
+data/
+docker-compose.yml

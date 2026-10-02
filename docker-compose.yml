@@ -1,0 +1,10 @@
+services:
+  recipe-app:
+    build: .
+    image: recipe-app
+    container_name: recipe-app
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
+    volumes:
+      - ./data:/app/data

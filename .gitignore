@@ -7,3 +7,4 @@ obj/
 ingredients.json.tmp
 recipes.json.tmp
 .idea/
+data/
