@@ -1,34 +1,39 @@
 ---
 name: save-recipe
-description: Save a recipe from the current conversation to recipes.json so it shows up on the Saved Recipes page of the Blazor app. Use when the user says "save this recipe", "save that", "keep this recipe", or runs /save-recipe after Claude has given them a recipe.
+description: Save a recipe from the current conversation via the app's API so it shows up on the Saved Recipes page of the Blazor app. Use when the user says "save this recipe", "save that", "keep this recipe", or runs /save-recipe after Claude has given them a recipe.
 ---
 
 # Save recipe
 
-Saves a recipe to `recipes.json` in the project root (next to `ingredients.json`).
-The Blazor app reads this file and shows it at `/recipes`.
+Saves a recipe through the app's API (`POST $API/recipes`, base URL in
+`CLAUDE.md`). The app stores it in `recipes.json` on the server and shows it
+at `/recipes`.
 
 ## Steps
 
 1. **Find the recipe.** Use the most recent recipe Claude gave in this
    conversation, unless the user names a different one. If there is no recipe
    in the conversation, say so and stop — don't invent one.
-2. **Read `recipes.json`.** If it doesn't exist, treat it as `[]`.
-3. **Pick the id.** `id` = highest existing `id` + 1, or `1` if the file is empty.
-4. **Build the entry** in the shape below and append it to the array.
-5. **Write the file** back as an indented JSON array (2 spaces), keeping every
-   existing entry unchanged.
-6. **Confirm** with one line: the title, the id, and that it's viewable at
+2. **Build the entry** in the shape below. Leave out `id` — the server
+   assigns it.
+3. **POST it:**
+   ```bash
+   curl -s -X POST "$API/recipes" -H 'Content-Type: application/json' -d @- <<'JSON'
+   { ...recipe... }
+   JSON
+   ```
+   The response is the saved recipe with its `id`. A 400 means a field is
+   invalid (usually a `unit`) — fix it and retry.
+4. **Confirm** with one line: the title, the id, and that it's viewable at
    `/recipes/<id>` in the app.
 
-Don't touch `ingredients.json`. If the user also wants the used ingredients
-deducted, that's a separate request.
+Don't change ingredients. If the user also wants the used ingredients
+deducted, that's a separate request (`POST $API/recipes/<id>/made`).
 
 ## Shape
 
 ```json
 {
-  "id": 3,
   "title": "Chickpea & Spinach Curry",
   "description": "A quick weeknight curry using tinned chickpeas.",
   "servings": 4,
@@ -53,7 +58,7 @@ deducted, that's a separate request.
 
 - `title` (required), `ingredients` and `steps` (required, non-empty).
 - `unit` must be exactly one of: `g`, `kg`, `ml`, `l`, `tsp`, `tbsp`, `cup`,
-  `pcs` — the app fails to load the file otherwise. Use `pcs` for counted items
+  `pcs` — the API rejects anything else with a 400. Use `pcs` for counted items
   (1 onion, 2 cloves garlic). If an ingredient has no sensible measure
   ("to taste", "a pinch"), leave out `amount` and `unit` and put it in `note`.
   Convert anything else to one of the allowed units (e.g. a "handful" of

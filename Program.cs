@@ -1,5 +1,7 @@
+using System.Text.Json.Serialization;
 using MudBlazor.Services;
 using RecipeIngredients.Components;
+using RecipeIngredients.Endpoints;
 using RecipeIngredients.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +11,13 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddMudServices();
+
+// API JSON matches the files: camelCase with units as strings ("g", "pcs").
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+});
 
 var ingredientsFile = builder.Configuration["IngredientsFile"]
     ?? Path.Combine(builder.Environment.ContentRootPath, "ingredients.json");
@@ -33,6 +42,7 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapApiEndpoints();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

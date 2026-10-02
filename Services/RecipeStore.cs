@@ -47,6 +47,22 @@ public class RecipeStore(string filePath)
         }
     }
 
+    public async Task AddAsync(Recipe recipe)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var recipes = await ReadAsync();
+            recipe.Id = recipes.Count == 0 ? 1 : recipes.Max(r => r.Id) + 1;
+            recipes.Add(recipe);
+            await WriteAsync(recipes);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
     public async Task SetFavouriteAsync(int id, bool isFavourite)
     {
         await UpdateAsync(id, r => r.IsFavourite = isFavourite);
@@ -78,16 +94,19 @@ public class RecipeStore(string filePath)
         }
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
         await _lock.WaitAsync();
         try
         {
             var recipes = await ReadAsync();
-            if (recipes.RemoveAll(r => r.Id == id) > 0)
+            if (recipes.RemoveAll(r => r.Id == id) == 0)
             {
-                await WriteAsync(recipes);
+                return false;
             }
+
+            await WriteAsync(recipes);
+            return true;
         }
         finally
         {

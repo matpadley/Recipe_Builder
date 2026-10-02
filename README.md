@@ -1,8 +1,9 @@
 # Recipe Ingredients
 
 A Blazor Server app for tracking the ingredients you have on hand. Ingredients
-are saved to a plain JSON file (`ingredients.json`) that Claude can read
-directly to suggest recipes — the app itself makes no API calls.
+and saved recipes live in plain JSON files (`ingredients.json`,
+`recipes.json`) on the server, and a small JSON API under `/api` lets Claude
+read and update them from another machine.
 
 ## What it does
 
@@ -52,6 +53,29 @@ The container listens on port 8080 and reads/writes `ingredients.json` and
 `recipes.json` in `/app/data`. Bind-mounting the project folder there, as
 above, puts the files where Claude can read and write them.
 
+## API
+
+Unauthenticated JSON endpoints for Claude (or anything else on the LAN):
+
+| Method | Path | Does |
+|---|---|---|
+| GET | `/api/ingredients` | List ingredients |
+| POST | `/api/ingredients` | Add an ingredient |
+| PUT | `/api/ingredients/{id}` | Update an ingredient |
+| DELETE | `/api/ingredients/{id}` | Delete an ingredient |
+| POST | `/api/ingredients/use` | Deduct `[{name, amount, unit}]` from stock |
+| GET | `/api/recipes` | List saved recipes |
+| GET | `/api/recipes/{id}` | Get one recipe |
+| POST | `/api/recipes` | Save a recipe (id assigned by the server) |
+| DELETE | `/api/recipes/{id}` | Delete a recipe |
+| POST | `/api/recipes/{id}/made` | Same as "I made this" |
+
+```bash
+curl http://SERVER_HOST:8090/api/ingredients
+```
+
+Set the server address in [CLAUDE.md](CLAUDE.md) so Claude Code uses it.
+
 ## Tech stack
 
 - ASP.NET Core Blazor Server (.NET 10, interactive server render mode)
@@ -65,13 +89,14 @@ Components/
   Layout/       Main layout and nav menu
   Pages/        Ingredients, Recipes, RecipeDetail, Error, NotFound
   Dialogs/      Add/edit ingredient dialog
+Endpoints/      ApiEndpoints (JSON API under /api)
 Models/         Ingredient, MeasurementUnit, Recipe, RecipeIngredient
 Services/
   IngredientStore, RecipeStore   JSON file persistence
   IngredientUsage                Deducts a recipe's ingredients from stock
   UnitConversion                 Converts between compatible units
 .claude/skills/
-  save-recipe/  Claude skill that writes recipes to recipes.json
+  save-recipe/  Claude skill that saves recipes via POST /api/recipes
 ```
 
 ## Configuration

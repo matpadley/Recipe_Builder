@@ -48,7 +48,7 @@ public class IngredientStore(string filePath)
         }
     }
 
-    public async Task UpdateAsync(Ingredient updated)
+    public async Task<bool> UpdateAsync(Ingredient updated)
     {
         await _lock.WaitAsync();
         try
@@ -57,7 +57,7 @@ public class IngredientStore(string filePath)
             var existing = ingredients.FirstOrDefault(i => i.Id == updated.Id);
             if (existing is null)
             {
-                return;
+                return false;
             }
 
             existing.Name = updated.Name;
@@ -65,6 +65,7 @@ public class IngredientStore(string filePath)
             existing.Unit = updated.Unit;
             existing.Available = updated.Available;
             await WriteAsync(ingredients);
+            return true;
         }
         finally
         {
@@ -91,16 +92,19 @@ public class IngredientStore(string filePath)
         }
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
         await _lock.WaitAsync();
         try
         {
             var ingredients = await ReadAsync();
-            if (ingredients.RemoveAll(i => i.Id == id) > 0)
+            if (ingredients.RemoveAll(i => i.Id == id) == 0)
             {
-                await WriteAsync(ingredients);
+                return false;
             }
+
+            await WriteAsync(ingredients);
+            return true;
         }
         finally
         {
