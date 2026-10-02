@@ -11,8 +11,19 @@ directly to suggest recipes — the app itself makes no API calls.
 - **Recipes** — ask Claude (e.g. in Claude Code, from this folder) for a recipe
   using the ingredients in `ingredients.json`. See [CLAUDE.md](CLAUDE.md).
 - **Saved Recipes** — run `/save-recipe` in Claude Code to save a recipe to
-  `recipes.json`; saved recipes are listed at `/recipes` in the app, where you
-  can view or delete them.
+  `recipes.json`; saved recipes are listed at `/recipes` in the app with
+  servings, total time, and tags. You can view, favourite (favourites sort
+  first), or delete them.
+- **"I made this"** — on a recipe's page, deducts its ingredients from
+  `ingredients.json` and records when you last made it. Names are matched
+  case-insensitively (ignoring plurals) and units are converted within the
+  same kind (g/kg, ml/l/tsp/tbsp/cup, pcs).
+
+> [!NOTE]
+> Partly used items keep their pack size: 2 × 400 g minus 200 g leaves
+> 1 × 400 g plus a separate 1 × 200 g entry. Recipe ingredients with no
+> quantity, no matching stock, or incompatible units are skipped and listed
+> in the result.
 
 ## Prerequisites
 
@@ -55,7 +66,10 @@ Components/
   Pages/        Ingredients, Recipes, RecipeDetail, Error, NotFound
   Dialogs/      Add/edit ingredient dialog
 Models/         Ingredient, MeasurementUnit, Recipe, RecipeIngredient
-Services/       IngredientStore, RecipeStore (JSON file persistence)
+Services/
+  IngredientStore, RecipeStore   JSON file persistence
+  IngredientUsage                Deducts a recipe's ingredients from stock
+  UnitConversion                 Converts between compatible units
 .claude/skills/
   save-recipe/  Claude skill that writes recipes to recipes.json
 ```
