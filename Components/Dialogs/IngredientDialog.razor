@@ -45,6 +45,12 @@
                                      Min="1"
                                      Variant="Variant.Outlined" />
                 </MudItem>
+
+                <MudItem xs="12" sm="6" Class="d-flex align-center">
+                    <MudSwitch @bind-Value="_ingredient.Frozen"
+                               Label="Frozen"
+                               Color="Color.Info" />
+                </MudItem>
             </MudGrid>
         </MudForm>
     </DialogContent>
@@ -81,6 +87,7 @@
                 Amount = Ingredient.Amount,
                 Unit = Ingredient.Unit,
                 Available = Ingredient.Available,
+                Frozen = Ingredient.Frozen,
                 CreatedAtUtc = Ingredient.CreatedAtUtc,
             };
     }

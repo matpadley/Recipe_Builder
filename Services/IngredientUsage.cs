@@ -106,6 +106,7 @@ public static class IngredientUsage
                 Amount = partial,
                 Unit = entry.Unit,
                 Available = 1,
+                Frozen = entry.Frozen,
                 CreatedAtUtc = entry.CreatedAtUtc,
             });
         }

@@ -31,6 +31,7 @@
         <MudTh><MudTableSortLabel SortBy="new Func<Ingredient, object>(x => x.Amount)">Amount per item</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<Ingredient, object>(x => x.Unit.ToString())">Unit</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<Ingredient, object>(x => x.Available)">Available</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Ingredient, object>(x => x.Frozen)">Frozen</MudTableSortLabel></MudTh>
         <MudTh Style="width: 96px;"></MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -40,6 +41,12 @@
             <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text">@context.Unit</MudChip>
         </MudTd>
         <MudTd DataLabel="Available">@(context.Available.ToString() ?? "-")</MudTd>
+        <MudTd DataLabel="Frozen">
+            @if (context.Frozen)
+            {
+                <MudIcon Icon="@Icons.Material.Filled.AcUnit" Size="Size.Small" Color="Color.Info" Title="Frozen" />
+            }
+        </MudTd>
         <MudTd DataLabel="Actions">
             <MudIconButton Icon="@Icons.Material.Filled.Edit"
                            Size="Size.Small"

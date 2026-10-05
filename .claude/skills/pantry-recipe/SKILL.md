@@ -29,11 +29,12 @@ Call it with `curl -s`; send JSON with `-H 'Content-Type: application/json'`.
 Stock entries look like:
 
 ```json
-{ "id": 1, "name": "Chickpeas", "amount": 400, "unit": "g", "available": 2 }
+{ "id": 1, "name": "Chickpeas", "amount": 400, "unit": "g", "available": 2, "frozen": false }
 ```
 
 `amount` + `unit` is one item; `available` is how many items, so the total on
-hand is `amount × available` (here 800 g).
+hand is `amount × available` (here 800 g). `frozen: true` means it's in the
+freezer, so mention defrosting it in the recipe; a missing `frozen` means false.
 
 If the API can't be reached, say so and stop. Don't fall back to a local
 `ingredients.json` — it's out of date.

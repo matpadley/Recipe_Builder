@@ -18,5 +18,8 @@ public class Ingredient
     [Range(1, 20)]
     public int Available { get; set; }
 
+    // Defaults to false, so older JSON without "frozen" still loads.
+    public bool Frozen { get; set; }
+
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }

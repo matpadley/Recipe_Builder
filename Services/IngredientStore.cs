@@ -64,6 +64,7 @@ public class IngredientStore(string filePath)
             existing.Amount = updated.Amount;
             existing.Unit = updated.Unit;
             existing.Available = updated.Available;
+            existing.Frozen = updated.Frozen;
             await WriteAsync(ingredients);
             return true;
         }

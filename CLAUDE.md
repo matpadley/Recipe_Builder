@@ -29,11 +29,13 @@ When asked for a recipe, use the `pantry-recipe` skill
 and bases the recipe on those ingredients. Each entry looks like:
 
 ```json
-{ "id": 1, "name": "Chickpeas", "amount": 400, "unit": "g", "available": 2, "createdAtUtc": "..." }
+{ "id": 1, "name": "Chickpeas", "amount": 400, "unit": "g", "available": 2, "frozen": false, "createdAtUtc": "..." }
 ```
 
 - `amount` + `unit` is the size of one item (units: g, kg, ml, l, tsp, tbsp, cup, pcs).
 - `available` is how many of those items are on hand, so total = amount × available.
+- `frozen` is true if the item is in the freezer (needs defrosting). It's
+  optional and defaults to false, so entries without it are not frozen.
 
 Don't change ingredients unless asked (e.g. to deduct what a recipe used —
 use `/ingredients/use` or `/recipes/{id}/made`).

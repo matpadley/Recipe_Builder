@@ -8,7 +8,7 @@ read and update them from another machine.
 ## What it does
 
 - **Ingredients** — add, edit, and delete the ingredients you have available,
-  with an amount, unit, and quantity on hand.
+  with an amount, unit, quantity on hand, and whether it's frozen.
 - **Recipes** — ask Claude (e.g. in Claude Code, from this folder) for a recipe
   using the ingredients in `ingredients.json`. See [CLAUDE.md](CLAUDE.md).
 - **Saved Recipes** — run `/save-recipe` in Claude Code to save a recipe to
