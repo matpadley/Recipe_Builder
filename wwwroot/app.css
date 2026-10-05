@@ -15,3 +15,13 @@
 .recipe-steps li {
     margin-bottom: 0.75rem;
 }
+
+/* Frozen ingredients: blue tint in place of the grey stripe/hover */
+.mud-table .mud-table-row.frozen-row,
+.mud-table-striped .mud-table-body .mud-table-row.frozen-row:nth-of-type(odd) {
+    background-color: color-mix(in srgb, var(--mud-palette-info) 14%, transparent);
+}
+
+.mud-table-hover .mud-table-body .mud-table-row.frozen-row:hover {
+    background-color: color-mix(in srgb, var(--mud-palette-info) 24%, transparent);
+}

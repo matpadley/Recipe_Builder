@@ -1,11 +1,20 @@
 [
   {
     "id": 1,
-    "name": "flour",
+    "name": "flours",
     "amount": 400,
     "unit": "g",
     "available": 2,
     "frozen": true,
     "createdAtUtc": "2026-10-02T11:04:38.167168Z"
+  },
+  {
+    "id": 2,
+    "name": "asd",
+    "amount": 23,
+    "unit": "tbsp",
+    "available": 1,
+    "frozen": false,
+    "createdAtUtc": "2026-10-05T11:43:52.68093Z"
   }
 ]
