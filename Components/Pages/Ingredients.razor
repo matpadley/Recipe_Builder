@@ -28,20 +28,32 @@
           Breakpoint="Breakpoint.Sm">
     <HeaderContent>
         <MudTh><MudTableSortLabel SortBy="new Func<Ingredient, object>(x => x.Name)">Ingredient</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<Ingredient, object>(x => x.Amount)">Amount per item</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Ingredient, object>(x => x.Amount)">Detail</MudTableSortLabel></MudTh>
         <MudTh Style="width: 96px;"></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Ingredient">@context.Name</MudTd>
-        <MudTd DataLabel="Amount per item">@context.Amount <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text">@context.Unit</MudChip>
-            @if (context.Available > 1)
-            {
-                <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text">(@context.Available}</MudChip>
-            }   
-            @if (context.Frozen)
-            {
-                <MudIcon Icon="@Icons.Material.Filled.AcUnit" Size="Size.Small" Color="Color.Info" Title="Frozen" />
-            }
+        <MudTd DataLabel="Amount per item">
+            <table style="border-collapse: collapse; table-layout: fixed;">
+                <tr>
+                    <td style="width: 64px; text-align: right; padding: 0 4px 0 0; border: none;">@context.Amount</td>
+                    <td style="width: 64px; padding: 0; border: none;">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text">@context.Unit</MudChip>
+                    </td>
+                    <td style="width: 56px; padding: 0; border: none;">
+                        @if (context.Available > 1)
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text">(@context.Available)</MudChip>
+                        }
+                    </td>
+                    <td style="width: 28px; padding: 0; border: none;">
+                        @if (context.Frozen)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.AcUnit" Size="Size.Small" Color="Color.Info" Title="Frozen" />
+                        }
+                    </td>
+                </tr>
+            </table>
         </MudTd>
         <MudTd DataLabel="Actions">
             <MudIconButton Icon="@Icons.Material.Filled.Edit"

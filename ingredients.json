@@ -16,5 +16,14 @@
     "available": 1,
     "frozen": false,
     "createdAtUtc": "2026-10-05T11:43:52.68093Z"
+  },
+  {
+    "id": 3,
+    "name": "testing",
+    "amount": 677,
+    "unit": "g",
+    "available": 4,
+    "frozen": false,
+    "createdAtUtc": "2026-10-05T11:48:52.134069Z"
   }
 ]
