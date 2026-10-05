@@ -4,7 +4,8 @@
     "name": "flour",
     "amount": 400,
     "unit": "g",
-    "available": 1,
+    "available": 2,
+    "frozen": true,
     "createdAtUtc": "2026-10-02T11:04:38.167168Z"
   }
 ]
