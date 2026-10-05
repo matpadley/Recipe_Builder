@@ -27,11 +27,10 @@
           Elevation="2"
           Breakpoint="Breakpoint.Sm">
     <HeaderContent>
-        <MudTh>Ingredient</MudTh>
-        <MudTh>Amount per item</MudTh>
-        <MudTh>Unit</MudTh>
-        <MudTh>Available</MudTh>
-        <MudTh>Added</MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Ingredient, object>(x => x.Name)">Ingredient</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Ingredient, object>(x => x.Amount)">Amount per item</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Ingredient, object>(x => x.Unit.ToString())">Unit</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Ingredient, object>(x => x.Available)">Available</MudTableSortLabel></MudTh>
         <MudTh Style="width: 96px;"></MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -41,7 +40,6 @@
             <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Text">@context.Unit</MudChip>
         </MudTd>
         <MudTd DataLabel="Available">@(context.Available.ToString() ?? "-")</MudTd>
-        <MudTd DataLabel="Added">@context.CreatedAtUtc.ToLocalTime().ToString("g")</MudTd>
         <MudTd DataLabel="Actions">
             <MudIconButton Icon="@Icons.Material.Filled.Edit"
                            Size="Size.Small"

@@ -96,6 +96,7 @@ Services/
   IngredientUsage                Deducts a recipe's ingredients from stock
   UnitConversion                 Converts between compatible units
 .claude/skills/
+  pantry-recipe/ Claude skill that writes recipes from stock via the API
   save-recipe/  Claude skill that saves recipes via POST /api/recipes
 ```
 

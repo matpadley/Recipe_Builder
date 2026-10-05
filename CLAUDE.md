@@ -24,8 +24,9 @@ Send JSON with `-H 'Content-Type: application/json'`. Invalid units give a 400.
 
 ## Ingredients
 
-When asked for a recipe, `GET $API/ingredients` and base the recipe on those
-ingredients. Each entry looks like:
+When asked for a recipe, use the `pantry-recipe` skill
+(`.claude/skills/pantry-recipe/SKILL.md`), which reads `GET $API/ingredients`
+and bases the recipe on those ingredients. Each entry looks like:
 
 ```json
 { "id": 1, "name": "Chickpeas", "amount": 400, "unit": "g", "available": 2, "createdAtUtc": "..." }
