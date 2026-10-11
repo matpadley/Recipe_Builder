@@ -9,6 +9,10 @@ read and update them from another machine.
 
 - **Ingredients** — add, edit, and delete the ingredients you have available,
   with an amount, unit, quantity on hand, and whether it's frozen.
+- **Kitchen Staples** — a separate page (`/staples`) for spices, oils, sauces
+  and other basics. No amounts, just a switch for whether each one is on hand.
+  Claude uses the available ones when generating recipes; they're never
+  deducted.
 - **Recipes** — ask Claude (e.g. in Claude Code, from this folder) for a recipe
   using the ingredients in `ingredients.json`. See [CLAUDE.md](CLAUDE.md).
 - **Saved Recipes** — run `/save-recipe` in Claude Code to save a recipe to
@@ -64,6 +68,10 @@ Unauthenticated JSON endpoints for Claude (or anything else on the LAN):
 | PUT | `/api/ingredients/{id}` | Update an ingredient |
 | DELETE | `/api/ingredients/{id}` | Delete an ingredient |
 | POST | `/api/ingredients/use` | Deduct `[{name, amount, unit}]` from stock |
+| GET | `/api/staples` | List kitchen staples |
+| POST | `/api/staples` | Add a staple `{name, available}` |
+| PUT | `/api/staples/{id}` | Update a staple |
+| DELETE | `/api/staples/{id}` | Delete a staple |
 | GET | `/api/recipes` | List saved recipes |
 | GET | `/api/recipes/{id}` | Get one recipe |
 | POST | `/api/recipes` | Save a recipe (id assigned by the server) |
