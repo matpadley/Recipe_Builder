@@ -27,6 +27,10 @@ var recipesFile = builder.Configuration["RecipesFile"]
     ?? Path.Combine(builder.Environment.ContentRootPath, "recipes.json");
 builder.Services.AddSingleton(new RecipeStore(recipesFile));
 
+var staplesFile = builder.Configuration["StaplesFile"]
+    ?? Path.Combine(builder.Environment.ContentRootPath, "staples.json");
+builder.Services.AddSingleton(new StapleStore(staplesFile));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

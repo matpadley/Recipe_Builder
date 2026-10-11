@@ -1,6 +1,6 @@
 ---
 name: pantry-recipe
-description: Generate a vegetarian, metric recipe in this project from the ingredients actually on hand, read from the Recipe Ingredients app's API. Use whenever the user in this repo asks for a recipe, what to cook or make, what they can make with what they have, or names a dish or cuisine — including when they mention meat or fish, which gets swapped for a vegetarian substitute. Use this instead of the global recipe-generator skill in this project.
+description: Generate a vegetarian, metric recipe in this project from the ingredients actually on hand, read from the Recipe Ingredients app's API. Use whenever the user in this repo asks for a recipe, what to cook or make, what they can make with what they have, or names a dish or cuisine — including when they mention meat or fish, which gets swapped for a vegetarian substitute. Also triggered when the user specifies a meal type: breakfast, lunch, dinner, or dessert. Use this instead of the global recipe-generator skill in this project.
 ---
 
 # Pantry recipe
@@ -11,12 +11,15 @@ local files.
 
 ## API
 
+The API SERVER_HOST is http://docke.local:8090
+
 Base URL is the `API=` line in `CLAUDE.md` (e.g. `http://SERVER_HOST:8090/api`).
 Call it with `curl -s`; send JSON with `-H 'Content-Type: application/json'`.
 
 | Method | Path | Body | Use it to |
 |---|---|---|---|
 | GET | `/ingredients` | | Get the stock list (always, first) |
+| GET | `/staples` | | Get the kitchen staples (always) |
 | GET | `/recipes` | | See saved recipes — avoid repeats, find favourites |
 | GET | `/recipes/{id}` | | Fetch one saved recipe |
 | POST | `/recipes` | recipe | Save a recipe — via the `save-recipe` skill |
@@ -25,6 +28,9 @@ Call it with `curl -s`; send JSON with `-H 'Content-Type: application/json'`.
 | POST | `/ingredients` | ingredient | Add stock (only when asked) |
 | PUT | `/ingredients/{id}` | ingredient | Change stock (only when asked) |
 | DELETE | `/ingredients/{id}` | | Remove stock (only when asked) |
+| POST | `/staples` | `{name, available}` | Add a staple (only when asked) |
+| PUT | `/staples/{id}` | `{name, available}` | Mark a staple run out/restocked (only when asked) |
+| DELETE | `/staples/{id}` | | Remove a staple (only when asked) |
 
 Stock entries look like:
 
@@ -36,12 +42,19 @@ Stock entries look like:
 hand is `amount × available` (here 800 g). `frozen: true` means it's in the
 freezer, so mention defrosting it in the recipe; a missing `frozen` means false.
 
+Staples (spices, oils, sauces, etc.) have no amounts — only whether they're
+on hand:
+
+```json
+{ "id": 1, "name": "Ground cumin", "available": true }
+```
+
 If the API can't be reached, say so and stop. Don't fall back to a local
 `ingredients.json` — it's out of date.
 
 ## Steps
 
-1. **Get stock:** `GET /ingredients`.
+1. **Get stock and staples:** `GET /ingredients` and `GET /staples`.
 2. **Get saved recipes:** `GET /recipes`. Don't suggest something that's
    already saved unless the user asks for it. Prefer something different from
    recently made recipes (`lastUsedUtc`). If the user asks for "a favourite" or
@@ -51,11 +64,16 @@ If the API can't be reached, say so and stop. Don't fall back to a local
    otherwise pick one that uses the most of what's on hand. Build it around the
    stock, and never use more of an item than its total on hand. If something
    essential is missing, say so in Notes and keep it minor (or swap it).
-   Ask a question only if nothing sensible can be made.
+   If the user specifies a meal type (breakfast, lunch, dinner, dessert), apply
+   the guidance in the **Meal types** section below. Ask a question only if
+   nothing sensible can be made.
 4. **Write the recipe** in the format below.
-5. **Offer next steps** in one line: save it (`/save-recipe`), and once it's
-   cooked, deduct the ingredients — `POST /recipes/{id}/made` if it's saved,
-   otherwise `POST /ingredients/use`. Do neither unless the user asks.
+5. **Save the recipe automatically** via `POST /recipes` — do this immediately
+   after writing it, without waiting to be asked. Use the shape in the **Saving**
+   section below. Confirm with one line: the title, the id, and that it's
+   viewable at `/recipes/<id>` in the app.
+6. **Offer one next step** once it's cooked: deduct the ingredients with
+   `POST /recipes/{id}/made`. Don't do this unless the user asks.
 
 ## Always vegetarian
 
@@ -69,12 +87,24 @@ mentions meat or fish, swap it for a substitute that fits the dish, e.g.:
 Prefer a substitute that's actually in stock. Mention the swap in one short
 sentence in Notes.
 
-## Pantry assumptions
+## Kitchen staples
 
-Assume these are always in the kitchen even if they're not in stock: onion,
-garlic, salt, black pepper, cooking oil/butter, paprika, cumin, chilli flakes,
-oregano, bay leaf. List them only if the recipe uses them. If one is also in
-stock, treat it as stock (it gets deducted).
+Staples with `available: true` are on hand in whatever amount the recipe
+needs — use them freely to season and flavour the dish, and list them only if
+the recipe uses them. Give them normal recipe quantities (`1 tsp Ground
+cumin`) using the staple's name. They aren't stock, so deduction skips them;
+don't add them to the **Uses from stock** line.
+
+Staples with `available: false` have run out: don't use them. If one would
+really suit the dish, swap it for an available staple or mention it in Notes.
+
+If something is both a staple and in stock, treat it as stock (it gets
+deducted).
+
+Beyond the staples list, assume only salt, black pepper and water. If the
+staples list is empty (not set up yet), fall back to assuming: onion, garlic,
+salt, black pepper, cooking oil/butter, paprika, cumin, chilli flakes,
+oregano, bay leaf.
 
 ## Quantities
 
@@ -95,6 +125,29 @@ endpoints:
 
 Default to 2 servings unless the user says otherwise; scale quantities to
 match.
+
+## Meal types
+
+If the user specifies a meal type, constrain the dish and tag accordingly.
+
+**breakfast** — lighter, quicker dishes suited to the morning. Lean towards
+eggs, porridge, pancakes, fritters, or grain bowls. Prefer shorter cook times
+(under 20 min). Avoid heavy sauces and spicy profiles. Tag: `"breakfast"`.
+
+**lunch** — satisfying but not heavy. Soups, noodle broths, bean salads, orzo
+dishes, or light pasta. A moderate amount of stock items. Tag: `"lunch"`.
+
+**dinner** — the default when no type is given. Full mains: curries, stews,
+fried rice, pasta bakes, noodle dishes. Use the most of what's on hand.
+Tag: `"dinner"`.
+
+**dessert** — sweet dishes only. Draw on coconut milk, creamed coconut,
+ground almonds, flaked almonds, cashew nuts, flour, rice, or tofu (silken
+tofu works well in mousse/pudding). Don't use savoury sauces or stock.
+Tag: `"dessert"`.
+
+Always add the meal type as a tag in the saved recipe alongside any other
+relevant tags (cuisine, main ingredient, etc.).
 
 ## Output format
 
@@ -131,3 +184,46 @@ takes out of the total on hand, so the user can see what's left.
 Concrete steps in the order you'd actually cook them, one action per step,
 with real times and heat levels ("simmer for 12 minutes on a low heat"), never
 "cook until done".
+
+## Saving
+
+After displaying the recipe, POST it immediately:
+
+```bash
+curl -s -X POST "http://docke.local:8090/api/recipes" \
+  -H 'Content-Type: application/json' -d @- <<'JSON'
+{ ...recipe... }
+JSON
+```
+
+Shape:
+
+```json
+{
+  "title": "Recipe Name",
+  "description": "One sentence summary.",
+  "servings": 2,
+  "prepMinutes": 10,
+  "cookMinutes": 25,
+  "ingredients": [
+    { "name": "Chickpeas", "amount": 400, "unit": "g", "note": "drained" },
+    { "name": "Salt", "note": "to taste" }
+  ],
+  "steps": [
+    "Heat the oil in a pan over a medium heat.",
+    "Add the onion and cook for 5 minutes until soft."
+  ],
+  "tags": ["vegetarian"],
+  "notes": "Optional 1–2 lines.",
+  "createdAtUtc": "2026-10-07T12:00:00Z"
+}
+```
+
+Field rules:
+- `unit` must be exactly one of: `g`, `kg`, `ml`, `l`, `tsp`, `tbsp`, `cup`,
+  `pcs`. Anything else gives a 400 — fix and retry.
+- Ingredients with no real measure (salt, pepper) omit `amount` and `unit`;
+  put it in `note` instead.
+- `steps` are plain strings with no leading numbers.
+- `createdAtUtc` is the current UTC time in ISO 8601 with a `Z` suffix.
+- Leave out `isFavourite` and `lastUsedUtc` — the app sets them.

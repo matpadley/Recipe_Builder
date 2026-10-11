@@ -1,0 +1,179 @@
+@page "/settings"
+@using RecipeIngredients.Models
+@using RecipeIngredients.Services
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@inject IngredientStore IngredientStore
+@inject StapleStore StapleStore
+@inject RecipeStore RecipeStore
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IJSRuntime JS
+
+<PageTitle>Settings</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">Settings</MudText>
+
+<MudGrid>
+    <MudItem xs="12" sm="6">
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-2">Export Data</MudText>
+            <MudText Typo="Typo.body2" Class="mb-4">
+                Download all ingredients, staples, and recipes as a single JSON file.
+            </MudText>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Download"
+                       OnClick="ExportAll"
+                       Disabled="_exporting">
+                @(_exporting ? "Exporting…" : "Export JSON")
+            </MudButton>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" sm="6">
+        <MudPaper Class="pa-4" Elevation="2">
+            <MudText Typo="Typo.h6" Class="mb-2">Import Data</MudText>
+            <MudText Typo="Typo.body2" Class="mb-3">
+                Restore from a previously exported JSON file. This replaces all current data.
+            </MudText>
+            @if (_importPreview is not null)
+            {
+                <MudAlert Severity="Severity.Warning" Class="mb-3">
+                    This will replace all data with <b>@_importPreview.Ingredients.Count ingredient(s)</b>,
+                    <b>@_importPreview.Staples.Count staple(s)</b>, and
+                    <b>@_importPreview.Recipes.Count recipe(s)</b>.
+                </MudAlert>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Error"
+                           StartIcon="@Icons.Material.Filled.Upload"
+                           OnClick="ConfirmImport"
+                           Disabled="_importing">
+                    @(_importing ? "Importing…" : "Replace All Data")
+                </MudButton>
+                <MudButton Variant="Variant.Text"
+                           Class="ml-2"
+                           OnClick="CancelImport">
+                    Cancel
+                </MudButton>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.FolderOpen"
+                           OnClick="TriggerFileInput">
+                    Choose File
+                </MudButton>
+                <InputFile id="importFileInput" OnChange="OnFileSelected" accept=".json" style="display:none" />
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter() },
+    };
+
+    private record ExportData(
+        DateTime ExportedAt,
+        List<Ingredient> Ingredients,
+        List<Staple> Staples,
+        List<Recipe> Recipes);
+
+    private bool _exporting;
+    private bool _importing;
+    private ExportData? _importPreview;
+
+    private async Task ExportAll()
+    {
+        _exporting = true;
+        try
+        {
+            var data = new ExportData(
+                DateTime.UtcNow,
+                await IngredientStore.GetAllAsync(),
+                await StapleStore.GetAllAsync(),
+                await RecipeStore.GetAllAsync());
+
+            var json = JsonSerializer.Serialize(data, JsonOptions);
+            var filename = $"recipe-backup-{DateTime.UtcNow:yyyy-MM-dd}.json";
+            await JS.InvokeVoidAsync("downloadFile", filename, json);
+        }
+        catch
+        {
+            Snackbar.Add("Export failed.", Severity.Error);
+        }
+        finally
+        {
+            _exporting = false;
+        }
+    }
+
+    private async Task TriggerFileInput()
+    {
+        await JS.InvokeVoidAsync("clickElement", "importFileInput");
+    }
+
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        try
+        {
+            await using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+            var data = await JsonSerializer.DeserializeAsync<ExportData>(stream, JsonOptions);
+            if (data is null)
+            {
+                Snackbar.Add("Could not read the file.", Severity.Error);
+                return;
+            }
+            _importPreview = data;
+        }
+        catch
+        {
+            Snackbar.Add("Invalid JSON file.", Severity.Error);
+        }
+    }
+
+    private async Task ConfirmImport()
+    {
+        if (_importPreview is null) return;
+
+        var confirmed = await DialogService.ShowMessageBoxAsync(
+            "Replace All Data",
+            "This will permanently replace all your current data. Are you sure?",
+            yesText: "Replace",
+            cancelText: "Cancel");
+
+        if (confirmed != true) return;
+
+        _importing = true;
+        try
+        {
+            await IngredientStore.ReplaceAllAsync(_importPreview.Ingredients);
+            await StapleStore.ReplaceAllAsync(_importPreview.Staples);
+            await RecipeStore.ReplaceAllAsync(_importPreview.Recipes);
+
+            Snackbar.Add("Data imported successfully.", Severity.Success);
+            _importPreview = null;
+        }
+        catch
+        {
+            Snackbar.Add("Import failed.", Severity.Error);
+        }
+        finally
+        {
+            _importing = false;
+        }
+    }
+
+    private void CancelImport()
+    {
+        _importPreview = null;
+    }
+}

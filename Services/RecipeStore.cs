@@ -94,6 +94,19 @@ public class RecipeStore(string filePath)
         }
     }
 
+    public async Task ReplaceAllAsync(List<Recipe> recipes)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            await WriteAsync(recipes);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
     public async Task<bool> DeleteAsync(int id)
     {
         await _lock.WaitAsync();

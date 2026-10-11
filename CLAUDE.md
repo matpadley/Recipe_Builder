@@ -14,6 +14,10 @@ API=http://SERVER_HOST:8090/api
 | PUT | `/ingredients/{id}` | ingredient | Update name/amount/unit/available |
 | DELETE | `/ingredients/{id}` | | Remove an ingredient |
 | POST | `/ingredients/use` | `[{name, amount, unit}]` | Deduct amounts from stock |
+| GET | `/staples` | | List kitchen staples |
+| POST | `/staples` | `{name, available}` | Add a staple (id assigned) |
+| PUT | `/staples/{id}` | `{name, available}` | Update a staple |
+| DELETE | `/staples/{id}` | | Remove a staple |
 | GET | `/recipes` | | List saved recipes |
 | GET | `/recipes/{id}` | | Get one recipe |
 | POST | `/recipes` | recipe | Save a recipe (id assigned) |
@@ -37,7 +41,19 @@ and bases the recipe on those ingredients. Each entry looks like:
 - `frozen` is true if the item is in the freezer (needs defrosting). It's
   optional and defaults to false, so entries without it are not frozen.
 
-Don't change ingredients unless asked (e.g. to deduct what a recipe used —
+## Kitchen Staples
+
+Spices, oils, sauces and other basics live on the app's Kitchen Staples page
+(`/staples`). They have no amounts — just whether they're on hand:
+
+```json
+{ "id": 1, "name": "Ground cumin", "available": true, "createdAtUtc": "..." }
+```
+
+The `pantry-recipe` skill reads `GET $API/staples` too and uses available
+staples freely; unavailable ones have run out. Staples are never deducted.
+
+Don't change ingredients or staples unless asked (e.g. to deduct what a recipe used —
 use `/ingredients/use` or `/recipes/{id}/made`).
 
 # Saved Recipes

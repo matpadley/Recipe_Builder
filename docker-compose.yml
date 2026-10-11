@@ -9,6 +9,7 @@ services:
     environment:
       - IngredientsFile=/app/data/ingredients.json
       - RecipesFile=/app/data/recipes.json
+      - StaplesFile=/app/data/staples.json
     volumes:
       - recipe-data:/app/data
 

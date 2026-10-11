@@ -93,6 +93,19 @@ public class IngredientStore(string filePath)
         }
     }
 
+    public async Task ReplaceAllAsync(List<Ingredient> ingredients)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            await WriteAsync(ingredients);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
     public async Task<bool> DeleteAsync(int id)
     {
         await _lock.WaitAsync();
