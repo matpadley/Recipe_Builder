@@ -8,7 +8,7 @@ namespace RecipeIngredients.Services;
 /// Persists ingredients to a single JSON file so they can be read directly
 /// (e.g. by Claude) without going through the app.
 /// </summary>
-public class IngredientStore(string filePath)
+public class IngredientStore(string filePath) : IIngredientStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

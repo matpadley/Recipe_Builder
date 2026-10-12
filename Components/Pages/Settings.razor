@@ -3,9 +3,9 @@
 @using RecipeIngredients.Services
 @using System.Text.Json
 @using System.Text.Json.Serialization
-@inject IngredientStore IngredientStore
-@inject StapleStore StapleStore
-@inject RecipeStore RecipeStore
+@inject IIngredientStore IngredientStore
+@inject IStapleStore StapleStore
+@inject IRecipeStore RecipeStore
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject IJSRuntime JS

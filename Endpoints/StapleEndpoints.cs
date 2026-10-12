@@ -9,9 +9,9 @@ public static class StapleEndpoints
     {
         var staples = api.MapGroup("/staples");
 
-        staples.MapGet("/", (StapleStore store) => store.GetAllAsync());
+        staples.MapGet("/", (IStapleStore store) => store.GetAllAsync());
 
-        staples.MapPost("/", async (Staple staple, StapleStore store) =>
+        staples.MapPost("/", async (Staple staple, IStapleStore store) =>
         {
             if (string.IsNullOrWhiteSpace(staple.Name))
             {
@@ -22,13 +22,13 @@ public static class StapleEndpoints
             return Results.Created($"/api/staples/{staple.Id}", staple);
         });
 
-        staples.MapPut("/{id:int}", async (int id, Staple staple, StapleStore store) =>
+        staples.MapPut("/{id:int}", async (int id, Staple staple, IStapleStore store) =>
         {
             staple.Id = id;
             return await store.UpdateAsync(staple) ? Results.Ok(staple) : Results.NotFound();
         });
 
-        staples.MapDelete("/{id:int}", async (int id, StapleStore store) =>
+        staples.MapDelete("/{id:int}", async (int id, IStapleStore store) =>
             await store.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
     }
 }

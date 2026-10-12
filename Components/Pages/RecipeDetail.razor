@@ -1,8 +1,8 @@
 @page "/recipes/{Id:int}"
 @using RecipeIngredients.Models
 @using RecipeIngredients.Services
-@inject RecipeStore Store
-@inject IngredientStore IngredientStore
+@inject IRecipeStore Store
+@inject IIngredientStore IngredientStore
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject NavigationManager Navigation

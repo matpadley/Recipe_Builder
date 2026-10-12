@@ -10,8 +10,15 @@ services:
       - IngredientsFile=/app/data/ingredients.json
       - RecipesFile=/app/data/recipes.json
       - StaplesFile=/app/data/staples.json
+      - UseDatabase=false
+    secrets:
+      - ConnectionStrings__Default
     volumes:
       - recipe-data:/app/data
+
+secrets:
+  ConnectionStrings__Default:
+    file: ./secrets/db_connection_string.txt
 
 volumes:
   recipe-data:

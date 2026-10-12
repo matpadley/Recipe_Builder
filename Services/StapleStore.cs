@@ -8,7 +8,7 @@ namespace RecipeIngredients.Services;
 /// Persists kitchen staples to a single JSON file, the same way as
 /// <see cref="IngredientStore"/>.
 /// </summary>
-public class StapleStore(string filePath)
+public class StapleStore(string filePath) : IStapleStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

@@ -9,12 +9,12 @@ public static class RecipeEndpoints
     {
         var recipes = api.MapGroup("/recipes");
 
-        recipes.MapGet("/", (RecipeStore store) => store.GetAllAsync());
+        recipes.MapGet("/", (IRecipeStore store) => store.GetAllAsync());
 
-        recipes.MapGet("/{id:int}", async (int id, RecipeStore store) =>
+        recipes.MapGet("/{id:int}", async (int id, IRecipeStore store) =>
             await store.GetAsync(id) is { } recipe ? Results.Ok(recipe) : Results.NotFound());
 
-        recipes.MapPost("/", async (Recipe recipe, RecipeStore store) =>
+        recipes.MapPost("/", async (Recipe recipe, IRecipeStore store) =>
         {
             if (string.IsNullOrWhiteSpace(recipe.Title) || recipe.Ingredients.Count == 0 || recipe.Steps.Count == 0)
             {
@@ -25,11 +25,11 @@ public static class RecipeEndpoints
             return Results.Created($"/api/recipes/{recipe.Id}", recipe);
         });
 
-        recipes.MapDelete("/{id:int}", async (int id, RecipeStore store) =>
+        recipes.MapDelete("/{id:int}", async (int id, IRecipeStore store) =>
             await store.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
 
         // Same as the "I made this" button: deducts ingredients and records last used.
-        recipes.MapPost("/{id:int}/made", async (int id, RecipeStore store, IngredientStore ingredientStore) =>
+        recipes.MapPost("/{id:int}/made", async (int id, IRecipeStore store, IIngredientStore ingredientStore) =>
         {
             if (await store.GetAsync(id) is not { } recipe)
             {

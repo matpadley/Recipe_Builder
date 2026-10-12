@@ -9,7 +9,7 @@ namespace RecipeIngredients.Services;
 /// by the save-recipe Claude skill; the app lists, shows, and deletes them, and
 /// tracks favourites and when each was last used.
 /// </summary>
-public class RecipeStore(string filePath)
+public class RecipeStore(string filePath) : IRecipeStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
