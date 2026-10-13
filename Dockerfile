@@ -15,8 +15,6 @@ COPY --from=build /app/publish .
 VOLUME ["/app/data"]
 
 ENV ASPNETCORE_URLS=http://+:8080
-ENV IngredientsFile=/app/data/ingredients.json
-ENV RecipesFile=/app/data/recipes.json
 EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "RecipeIngredients.dll"]

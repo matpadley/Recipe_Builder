@@ -23,37 +23,17 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
-var useDatabase = builder.Configuration.GetValue<bool>("UseDatabase");
-
-if (useDatabase)
-{
-    var connectionString = builder.Configuration.GetConnectionString("Default")
-        ?? throw new InvalidOperationException("Set ConnectionStrings:Default in appsettings.json.");
-    builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
-    builder.Services.AddScoped<IIngredientStore, DbIngredientStore>();
-    builder.Services.AddScoped<IRecipeStore, DbRecipeStore>();
-    builder.Services.AddScoped<IStapleStore, DbStapleStore>();
-}
-else
-{
-    var ingredientsFile = builder.Configuration["IngredientsFile"]
-        ?? Path.Combine(builder.Environment.ContentRootPath, "ingredients.json");
-    builder.Services.AddSingleton<IIngredientStore>(new IngredientStore(ingredientsFile));
-
-    var recipesFile = builder.Configuration["RecipesFile"]
-        ?? Path.Combine(builder.Environment.ContentRootPath, "recipes.json");
-    builder.Services.AddSingleton<IRecipeStore>(new RecipeStore(recipesFile));
-
-    var staplesFile = builder.Configuration["StaplesFile"]
-        ?? Path.Combine(builder.Environment.ContentRootPath, "staples.json");
-    builder.Services.AddSingleton<IStapleStore>(new StapleStore(staplesFile));
-}
+var connectionString = builder.Configuration.GetConnectionString("Default")
+    ?? throw new InvalidOperationException("Set ConnectionStrings:Default.");
+builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
+builder.Services.AddScoped<IIngredientStore, DbIngredientStore>();
+builder.Services.AddScoped<IRecipeStore, DbRecipeStore>();
+builder.Services.AddScoped<IStapleStore, DbStapleStore>();
 
 var app = builder.Build();
 
-if (useDatabase)
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.EnsureCreatedAsync();
     await SeedFromJsonAsync(db, app.Configuration, app.Environment);

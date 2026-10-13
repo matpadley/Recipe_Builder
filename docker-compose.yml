@@ -8,15 +8,12 @@ services:
       - "8090:8080"
     secrets:
       - ConnectionStrings__Default
-      - UseDatabase
     volumes:
       - recipe-data:/app/data
 
 secrets:
   ConnectionStrings__Default:
     file: ./secrets/db_connection_string.txt
-  UseDatabase:
-    file: ./secrets/UseDatabase.txt
 
 volumes:
   recipe-data:
