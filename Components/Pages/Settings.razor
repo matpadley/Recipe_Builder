@@ -59,12 +59,14 @@
             }
             else
             {
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Primary"
-                           StartIcon="@Icons.Material.Filled.FolderOpen"
-                           OnClick="TriggerFileInput">
-                    Choose File
-                </MudButton>
+                <label for="importFileInput" style="display:inline-block; cursor:pointer">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.FolderOpen"
+                               HtmlTag="span">
+                        Choose File
+                    </MudButton>
+                </label>
                 <InputFile id="importFileInput" OnChange="OnFileSelected" accept=".json" style="display:none" />
             }
         </MudPaper>
@@ -113,11 +115,6 @@
         {
             _exporting = false;
         }
-    }
-
-    private async Task TriggerFileInput()
-    {
-        await JS.InvokeVoidAsync("clickElement", "importFileInput");
     }
 
     private async Task OnFileSelected(InputFileChangeEventArgs e)
