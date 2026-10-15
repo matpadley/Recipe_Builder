@@ -13,6 +13,9 @@
                                   Label="Ingredient"
                                   Placeholder="e.g. Flour"
                                   AutoFocus="!_isEdit"
+                                  Immediate="true"
+                                  Error="IsDuplicate"
+                                  ErrorText="@DuplicateMessage"
                                   Variant="Variant.Outlined" />
                 </MudItem>
 
@@ -66,7 +69,7 @@
                    Variant="Variant.Filled"
                    StartIcon="@Icons.Material.Filled.Save"
                    OnClick="Submit"
-                   Disabled="_saving">
+                   Disabled="_saving || IsDuplicate">
             @(_saving ? "Saving..." : "Save")
         </MudButton>
     </DialogActions>
@@ -75,6 +78,9 @@
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter] public Ingredient? Ingredient { get; set; }
+
+    /// <summary>Names of the other ingredients, used to reject duplicates.</summary>
+    [Parameter] public IEnumerable<string> ExistingNames { get; set; } = [];
 
     private MudForm _form = default!;
     private Ingredient _ingredient = new();
@@ -99,8 +105,19 @@
             };
     }
 
+    private bool IsDuplicate =>
+        !string.IsNullOrWhiteSpace(_ingredient.Name)
+        && ExistingNames.Any(n => string.Equals(n, _ingredient.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    private string DuplicateMessage => $"\"{_ingredient.Name.Trim()}\" is already in your ingredients.";
+
     private async Task Submit()
     {
+        if (IsDuplicate)
+        {
+            return;
+        }
+
         await _form.ValidateAsync();
         if (!_form.IsValid)
         {

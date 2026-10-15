@@ -19,11 +19,13 @@
                   Variant="Variant.Outlined"
                   Margin="Margin.Dense"
                   Immediate="true"
+                  Error="IsNewNameDuplicate"
+                  ErrorText="@($"\"{_newName.Trim()}\" is already in your staples.")"
                   OnKeyDown="OnNewNameKeyDown" />
     <MudIconButton Icon="@Icons.Material.Filled.Add"
                    Color="Color.Primary"
                    Variant="Variant.Filled"
-                   Disabled="string.IsNullOrWhiteSpace(_newName)"
+                   Disabled="string.IsNullOrWhiteSpace(_newName) || IsNewNameDuplicate"
                    OnClick="AddStaple" />
 </MudPaper>
 
@@ -87,6 +89,10 @@
             .ToList();
     }
 
+    private bool IsNewNameDuplicate =>
+        !string.IsNullOrWhiteSpace(_newName)
+        && _staples?.Any(s => string.Equals(s.Name, _newName.Trim(), StringComparison.OrdinalIgnoreCase)) == true;
+
     private async Task OnNewNameKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
@@ -103,9 +109,8 @@
             return;
         }
 
-        if (_staples?.Any(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)) == true)
+        if (IsNewNameDuplicate)
         {
-            Snackbar.Add($"{name} is already in your staples.", Severity.Info);
             return;
         }
 
@@ -124,7 +129,11 @@
 
     private async Task OpenEditDialog(Staple staple)
     {
-        var parameters = new DialogParameters<StapleDialog> { { x => x.Staple, staple } };
+        var parameters = new DialogParameters<StapleDialog> 
+        {
+            { x => x.Staple, staple },
+            { x => x.ExistingNames, _staples?.Where(s => s.Id != staple.Id).Select(s => s.Name).ToList() ?? [] }
+        };
         var dialog = await DialogService.ShowAsync<StapleDialog>("Edit Staple", parameters);
         var result = await dialog.Result;
 

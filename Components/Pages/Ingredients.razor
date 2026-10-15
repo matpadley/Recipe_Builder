@@ -95,7 +95,11 @@
 
     private async Task OpenAddDialog()
     {
-        var dialog = await DialogService.ShowAsync<IngredientDialog>("Add Ingredient");
+        var parameters = new DialogParameters<IngredientDialog>
+        {
+            { x => x.ExistingNames, _ingredients?.Select(i => i.Name).ToList() ?? [] }
+        };
+        var dialog = await DialogService.ShowAsync<IngredientDialog>("Add Ingredient", parameters);
         var result = await dialog.Result;
 
         if (result is { Canceled: false, Data: Ingredient ingredient })
@@ -109,7 +113,11 @@
 
     private async Task OpenEditDialog(Ingredient ingredient)
     {
-        var parameters = new DialogParameters<IngredientDialog> { { x => x.Ingredient, ingredient } };
+        var parameters = new DialogParameters<IngredientDialog>
+        {
+            { x => x.Ingredient, ingredient },
+            { x => x.ExistingNames, _ingredients?.Where(i => i.Id != ingredient.Id).Select(i => i.Name).ToList() ?? [] }
+        };
         var dialog = await DialogService.ShowAsync<IngredientDialog>("Edit Ingredient", parameters);
         var result = await dialog.Result;
 

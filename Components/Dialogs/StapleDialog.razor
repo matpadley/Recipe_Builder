@@ -13,6 +13,9 @@
                                   Label="Staple"
                                   Placeholder="e.g. Ground cumin"
                                   Required="true"
+                                  Immediate="true"
+                                  Error="IsDuplicate"
+                                  ErrorText="@DuplicateMessage"
                                   Variant="Variant.Outlined" />
                 </MudItem>
 
@@ -30,7 +33,7 @@
                    Variant="Variant.Filled"
                    StartIcon="@Icons.Material.Filled.Save"
                    OnClick="Submit"
-                   Disabled="_saving">
+                   Disabled="_saving || IsDuplicate">
             @(_saving ? "Saving..." : "Save")
         </MudButton>
     </DialogActions>
@@ -39,6 +42,9 @@
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
     [Parameter, EditorRequired] public Staple Staple { get; set; } = default!;
+
+    /// <summary>Names of the other staples, used to reject duplicates.</summary>
+    [Parameter] public IEnumerable<string> ExistingNames { get; set; } = [];
 
     private MudForm _form = default!;
     private Staple _staple = new();
@@ -55,8 +61,19 @@
         };
     }
 
+    private bool IsDuplicate =>
+        !string.IsNullOrWhiteSpace(_staple.Name)
+        && ExistingNames.Any(n => string.Equals(n, _staple.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    private string DuplicateMessage => $"\"{_staple.Name.Trim()}\" is already in your staples.";
+
     private async Task Submit()
     {
+        if (IsDuplicate)
+        {
+            return;
+        }
+
         await _form.ValidateAsync();
         if (!_form.IsValid)
         {
