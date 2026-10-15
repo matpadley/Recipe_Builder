@@ -38,7 +38,7 @@
     <HeaderContent>
         <MudTh><MudTableSortLabel SortBy="new Func<Staple, object>(x => x.Name)">Staple</MudTableSortLabel></MudTh>
         <MudTh Style="width: 120px;"><MudTableSortLabel SortBy="new Func<Staple, object>(x => x.Available)">Available</MudTableSortLabel></MudTh>
-        <MudTh Style="width: 56px;"></MudTh>
+        <MudTh Style="width: 96px;"></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Staple">
@@ -53,6 +53,10 @@
                        Color="Color.Success" />
         </MudTd>
         <MudTd DataLabel="Actions">
+            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                           Size="Size.Small"
+                           Color="Color.Primary"
+                           OnClick="@(() => OpenEditDialog(context))" />
             <MudIconButton Icon="@Icons.Material.Filled.Delete"
                            Size="Size.Small"
                            Color="Color.Error"
@@ -116,6 +120,22 @@
     {
         staple.Available = available;
         await Store.UpdateAsync(staple);
+    }
+
+    private async Task OpenEditDialog(Staple staple)
+    {
+        var parameters = new DialogParameters<StapleDialog> { { x => x.Staple, staple } };
+        var dialog = await DialogService.ShowAsync<StapleDialog>("Edit Staple", parameters);
+        var result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: Staple updated })
+        {
+            updated.Name = updated.Name.Trim();
+            await Store.UpdateAsync(updated);
+
+            Snackbar.Add($"Updated {updated.Name}.", Severity.Success);
+            await LoadStaples();
+        }
     }
 
     private async Task DeleteStaple(Staple staple)
