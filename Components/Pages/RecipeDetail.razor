@@ -73,6 +73,22 @@ else
     </div>
 
     <MudGrid>
+        @if (_recipe.Nutrition is { } n)
+        {
+            <MudItem xs="12">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudText Typo="Typo.h6" GutterBottom="true">Nutrition <span class="mud-text-secondary" style="font-size: 0.8em">(per serving, estimated)</span></MudText>
+                    <MudSimpleTable Dense="true" Hover="false">
+                        <thead>
+                            <tr><th>Energy</th><th>Protein</th><th>Carbohydrates</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>@n.Kcal kcal</td><td>@n.ProteinG.ToString("0.#") g</td><td>@n.CarbsG.ToString("0.#") g</td></tr>
+                        </tbody>
+                    </MudSimpleTable>
+                </MudPaper>
+            </MudItem>
+        }
         <MudItem xs="12" md="5">
             <MudPaper Class="pa-4" Elevation="2">
                 <MudText Typo="Typo.h6" GutterBottom="true">Ingredients</MudText>

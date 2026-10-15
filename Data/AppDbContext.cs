@@ -32,6 +32,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                     v => JsonSerializer.Deserialize<List<RecipeIngredient>>(v, JsonOpts) ?? new List<RecipeIngredient>())
                 .HasColumnType("jsonb");
 
+            b.Property(r => r.Nutrition)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, JsonOpts),
+                    v => JsonSerializer.Deserialize<Nutrition>(v, JsonOpts)!)
+                .HasColumnType("jsonb");
+
             b.Property(r => r.Steps)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, JsonOpts),

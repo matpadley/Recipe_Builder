@@ -40,6 +40,12 @@ else
                         {
                             <MudText Typo="Typo.body2" Class="mt-1">@recipe.Description</MudText>
                         }
+                        @if (recipe.Nutrition is { } n)
+                        {
+                            <MudText Typo="Typo.caption" Class="mt-2 d-block">
+                                @n.Kcal kcal · @n.ProteinG.ToString("0.#") g protein · @n.CarbsG.ToString("0.#") g carbs
+                            </MudText>
+                        }
                         <div class="d-flex flex-wrap gap-1 mt-3">
                             @if (recipe.Servings is not null)
                             {

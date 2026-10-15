@@ -44,6 +44,7 @@ deducted, that's a separate request (`POST $API/recipes/<id>/made`).
     { "name": "Onion", "amount": 1, "unit": "pcs", "note": "finely chopped" },
     { "name": "Salt", "note": "to taste" }
   ],
+  "nutrition": { "kcal": 520, "proteinG": 22, "carbsG": 68 },
   "steps": [
     "Heat the oil in a large pan and soften the onion for 5 minutes.",
     "Add the chickpeas and simmer for 20 minutes."
@@ -64,6 +65,10 @@ deducted, that's a separate request (`POST $API/recipes/<id>/made`).
   Convert anything else to one of the allowed units (e.g. a "handful" of
   spinach → estimate grams).
 - `amount` is a number, never a string or fraction (`0.5`, not `"1/2"`).
+- `nutrition` is required: estimated values **per serving** — `kcal` (integer),
+  `proteinG` and `carbsG` (grams, numbers). Work them out from the final
+  ingredient list (typical values per 100 g, summed, divided by `servings`).
+  Don't leave it out.
 - `steps` are plain strings without leading numbers — the app numbers them.
 - `servings`, `prepMinutes`, `cookMinutes` are integers; leave a field out
   rather than guessing wildly.

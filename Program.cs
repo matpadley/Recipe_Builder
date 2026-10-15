@@ -38,6 +38,8 @@ using (var scope = app.Services.CreateScope())
     await db.Database.EnsureCreatedAsync();
     await db.Database.ExecuteSqlRawAsync(
         "ALTER TABLE \"Ingredients\" ADD COLUMN IF NOT EXISTS \"Canned\" boolean NOT NULL DEFAULT false");
+    await db.Database.ExecuteSqlRawAsync(
+        "ALTER TABLE \"Recipes\" ADD COLUMN IF NOT EXISTS \"Nutrition\" jsonb");
     await SeedFromJsonAsync(db, app.Configuration, app.Environment);
 }
 

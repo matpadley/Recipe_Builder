@@ -14,6 +14,9 @@ public class Recipe
 
     public int? CookMinutes { get; set; }
 
+    /// <summary>Estimated nutrition per serving.</summary>
+    public Nutrition? Nutrition { get; set; }
+
     public List<RecipeIngredient> Ingredients { get; set; } = [];
 
     public List<string> Steps { get; set; } = [];

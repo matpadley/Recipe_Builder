@@ -209,6 +209,7 @@ Shape:
     { "name": "Chickpeas", "amount": 400, "unit": "g", "note": "drained" },
     { "name": "Salt", "note": "to taste" }
   ],
+  "nutrition": { "kcal": 520, "proteinG": 22, "carbsG": 68 },
   "steps": [
     "Heat the oil in a pan over a medium heat.",
     "Add the onion and cook for 5 minutes until soft."
@@ -224,6 +225,9 @@ Field rules:
   `pcs`. Anything else gives a 400 — fix and retry.
 - Ingredients with no real measure (salt, pepper) omit `amount` and `unit`;
   put it in `note` instead.
+- `nutrition` is required: estimated values **per serving** — `kcal` (integer),
+  `proteinG` and `carbsG` (grams). Work them out from the final ingredient list
+  (typical values per 100 g, summed, divided by `servings`).
 - `steps` are plain strings with no leading numbers.
 - `createdAtUtc` is the current UTC time in ISO 8601 with a `Z` suffix.
 - Leave out `isFavourite` and `lastUsedUtc` — the app sets them.
