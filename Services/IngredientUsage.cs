@@ -54,12 +54,30 @@ public static class IngredientUsage
             foreach (var entry in compatible)
             {
                 UnitConversion.TryConvert(needed, unit, entry.Unit, out var neededInEntryUnit);
-                var total = Total(entry);
-                var take = Math.Min(total, neededInEntryUnit);
-                SetRemaining(stock, entry, total - take);
 
-                UnitConversion.TryConvert(take, entry.Unit, unit, out var takenInRecipeUnit);
-                needed -= takenInRecipeUnit;
+                if (entry.Canned)
+                {
+                    var cansToOpen = (int)Math.Ceiling((double)(neededInEntryUnit / entry.Amount));
+                    cansToOpen = Math.Min(cansToOpen, entry.Available);
+                    var provided = cansToOpen * entry.Amount;
+
+                    entry.Available -= cansToOpen;
+                    if (entry.Available <= 0)
+                        stock.Remove(entry);
+
+                    UnitConversion.TryConvert(provided, entry.Unit, unit, out var providedInRecipeUnit);
+                    needed -= providedInRecipeUnit;
+                }
+                else
+                {
+                    var total = Total(entry);
+                    var take = Math.Min(total, neededInEntryUnit);
+                    SetRemaining(stock, entry, total - take);
+
+                    UnitConversion.TryConvert(take, entry.Unit, unit, out var takenInRecipeUnit);
+                    needed -= takenInRecipeUnit;
+                }
+
                 if (needed <= 0.005m)
                 {
                     break;
@@ -107,6 +125,7 @@ public static class IngredientUsage
                 Unit = entry.Unit,
                 Available = 1,
                 Frozen = entry.Frozen,
+                Canned = entry.Canned,
                 CreatedAtUtc = entry.CreatedAtUtc,
             });
         }

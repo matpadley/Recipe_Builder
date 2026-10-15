@@ -26,6 +26,7 @@ public class DbIngredientStore(AppDbContext db) : IIngredientStore
         existing.Unit = updated.Unit;
         existing.Available = updated.Available;
         existing.Frozen = updated.Frozen;
+        existing.Canned = updated.Canned;
         await db.SaveChangesAsync();
         return true;
     }

@@ -21,5 +21,8 @@ public class Ingredient
     // Defaults to false, so older JSON without "frozen" still loads.
     public bool Frozen { get; set; }
 
+    // When true, deductions reduce Available (can count) not weight.
+    public bool Canned { get; set; }
+
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }

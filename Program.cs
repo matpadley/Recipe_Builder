@@ -36,6 +36,8 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.EnsureCreatedAsync();
+    await db.Database.ExecuteSqlRawAsync(
+        "ALTER TABLE \"Ingredients\" ADD COLUMN IF NOT EXISTS \"Canned\" boolean NOT NULL DEFAULT false");
     await SeedFromJsonAsync(db, app.Configuration, app.Environment);
 }
 

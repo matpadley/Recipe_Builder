@@ -51,6 +51,10 @@
                         {
                             <MudIcon Icon="@Icons.Material.Filled.AcUnit" Size="Size.Small" Color="Color.Info" Title="Frozen" />
                         }
+                        @if (context.Canned)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Inventory2" Size="Size.Small" Color="Color.Warning" Title="Canned" />
+                        }
                     </td>
                 </tr>
             </table>
