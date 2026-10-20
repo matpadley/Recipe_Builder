@@ -28,6 +28,17 @@ public static class RecipeEndpoints
         recipes.MapDelete("/{id:int}", async (int id, IRecipeStore store) =>
             await store.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
 
+        recipes.MapPut("/{id:int}/favourite", async (int id, FavouriteRequest request, IRecipeStore store) =>
+        {
+            if (await store.GetAsync(id) is null)
+            {
+                return Results.NotFound();
+            }
+
+            await store.SetFavouriteAsync(id, request.IsFavourite);
+            return Results.NoContent();
+        });
+
         // Same as the "I made this" button: deducts ingredients and records last used.
         recipes.MapPost("/{id:int}/made", async (int id, IRecipeStore store, IIngredientStore ingredientStore) =>
         {
@@ -42,3 +53,5 @@ public static class RecipeEndpoints
         });
     }
 }
+
+public sealed record FavouriteRequest(bool IsFavourite);
