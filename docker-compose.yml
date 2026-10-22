@@ -8,10 +8,13 @@ services:
       - "8090:8080"
     secrets:
       - ConnectionStrings__Default
+      - Api__Key
     volumes:
       - recipe-data:/app/data
 
 secrets:
+  Api__Key:
+    file: ./secrets/api_key.txt   # never commit; generate with: openssl rand -base64 32
   ConnectionStrings__Default:
     file: ./secrets/db_connection_string.txt
 
