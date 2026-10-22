@@ -1,7 +1,7 @@
 # Recipe Ingredients
 
 The app runs on a separate server, so the data is reached over its HTTP API,
-not local files. Use `curl` against this base URL:
+not local files. Use `curl` against this base URL, sending the key in an `X-Api-Key` header:
 
 ```
 API=http://SERVER_HOST:8090/api
@@ -43,8 +43,7 @@ and bases the recipe on those ingredients. Each entry looks like:
 
 ## Kitchen Staples
 
-Spices, oils, sauces and other basics live on the app's Kitchen Staples page
-(`/staples`). They have no amounts — just whether they're on hand:
+Spices, oils, sauces and other basics are served by `/staples`. They have no amounts — just whether they're on hand:
 
 ```json
 { "id": 1, "name": "Ground cumin", "available": true, "createdAtUtc": "..." }
@@ -59,6 +58,6 @@ use `/ingredients/use` or `/recipes/{id}/made`).
 # Saved Recipes
 
 Recipes the user chooses to keep are saved through `POST $API/recipes` and
-shown on the app's Saved Recipes page (`/recipes`). Save them with the
+listed by `/recipes`. Save them with the
 `save-recipe` skill (`.claude/skills/save-recipe/SKILL.md`), which defines the
 JSON shape. Only save a recipe when the user asks.

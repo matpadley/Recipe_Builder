@@ -1,8 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
-using MudBlazor.Services;
-using RecipeIngredients.Components;
 using RecipeIngredients.Data;
 using RecipeIngredients.Endpoints;
 using RecipeIngredients.Models;
@@ -11,11 +9,6 @@ using RecipeIngredients.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddKeyPerFile("/run/secrets/", optional: true);
-
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
-
-builder.Services.AddMudServices();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -45,19 +38,11 @@ using (var scope = app.Services.CreateScope())
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
-// Re-execute 404s through the Blazor page for the UI only; API clients need the real status.
-app.UseWhen(ctx => !ctx.Request.Path.StartsWithSegments("/api"),
-    ui => ui.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
 app.UseHttpsRedirection();
-app.UseAntiforgery();
-app.MapStaticAssets();
-app.MapGet("/health", () => Results.Ok("ok"));
+app.MapGet("/health", () => Results.Ok("ok")).AddEndpointFilter<ApiKeyFilter>();
 app.MapApiEndpoints();
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
 
 app.Run();
 
